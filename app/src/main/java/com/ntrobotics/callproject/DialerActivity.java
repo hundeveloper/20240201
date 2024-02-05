@@ -144,19 +144,6 @@ public class DialerActivity extends BaseActivity {
         });
 
 
-
-        autoCallViewModel.statuscode.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                if(s.equals("0006")){
-                    MyLogSupport.log_print("통화가능상태! -> " + s);
-                }else{
-                    MyLogSupport.log_print("통화불가능상태! -> " + s);
-                }
-
-            }
-        });
-
         autoCallViewModel.timer_Setting.observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
@@ -223,9 +210,6 @@ public class DialerActivity extends BaseActivity {
     protected void destroyActivity() {
 
     }
-
-
-
 
 
     @Override

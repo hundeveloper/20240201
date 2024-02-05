@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.telecom.ConnectionService;
 import android.telephony.TelephonyManager;
@@ -47,6 +48,8 @@ public class MainActivity extends BaseActivity {
     private ProgressDialog progressDialog;
     private AlarmManager alarmManager;
     private TimePicker timePicker;
+    private Long mLastClickTime = 0L;
+
 
     @Override
     protected void createActivity() {
@@ -57,7 +60,6 @@ public class MainActivity extends BaseActivity {
 
         permission_check();
         Go_Settings();
-        ConnectionService connectionService;
 
     }
 
@@ -67,7 +69,8 @@ public class MainActivity extends BaseActivity {
             PERMISSIONS = new String[]{
                     Manifest.permission.CALL_PHONE,
                     Manifest.permission.READ_PHONE_NUMBERS,
-                    Manifest.permission.SYSTEM_ALERT_WINDOW
+                    Manifest.permission.SYSTEM_ALERT_WINDOW,
+                    Manifest.permission.ANSWER_PHONE_CALLS
             };
         }else{
             PERMISSIONS = new String[]{
@@ -120,11 +123,11 @@ public class MainActivity extends BaseActivity {
         it = new Intent(this, AfterActivity.class);
         telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
 
+        MyLogSupport.log_print("TelephonyManager 전화번호 -> + "+telephonyManager.getLine1Number());
+
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        timePicker = binding.tpTimepicker;
         progressDialog = new ProgressDialog(this);
         binding.loginButton.setOnClickListener(this);
-        binding.alarmStart.setOnClickListener(this);
 
 
         // TODO : REST API 관찰호선
@@ -177,36 +180,39 @@ public class MainActivity extends BaseActivity {
     @SuppressLint("HardwareIds")
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.login_button) {
-            MyLogSupport.log_print("로그인버튼클릭!");
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            if(telephonyManager.getLine1Number() == null){
-                myToastSupport.showToast("유심을 장착해 주세요.");
-                return;
-            }
-            readViewModel.login(binding.companyId.getText().toString(), telephonyManager.getLine1Number());
-            myToastSupport.showToast("로그인중입니다.");
-            progressDialog.showDialog();
-
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    progressDialog.closeDialog();
+        if(SystemClock.elapsedRealtime() - mLastClickTime > 1000) {
+            if (v.getId() == R.id.login_button) {
+                MyLogSupport.log_print("로그인버튼클릭!");
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                    return;
                 }
-            },2000);
+                if (telephonyManager.getLine1Number() == null) {
+                    myToastSupport.showToast("유심을 장착해 주세요.");
+                    return;
+                }
 
+
+                readViewModel.login(binding.companyId.getText().toString(), telephonyManager.getLine1Number());
+                myToastSupport.showToast("로그인중입니다.");
+                progressDialog.showDialog();
+
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.closeDialog();
+                    }
+                }, 2000);
+            }
         }
-        else if(v.getId() == R.id.alarm_start){
-            regist();
-        }
+        mLastClickTime = SystemClock.elapsedRealtime();
     }
 
     @SuppressLint({"MissingPermission", "ScheduleExactAlarm"})
     public void regist() {
+        // 앱 재부팅 실행!!
+        // TODO Calendar 시간에 맞춰서넣으면됩니다. calendar.set(이부분)
         Intent intent = new Intent(this, Alarm.class);
         intent.putExtra("app", "restart");
         PendingIntent pIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

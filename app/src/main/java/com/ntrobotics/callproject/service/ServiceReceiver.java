@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.telephony.TelephonyManager;
 
 import androidx.lifecycle.LifecycleOwner;
@@ -36,12 +37,11 @@ public class ServiceReceiver extends BroadcastReceiver {
         if (intent.getAction().equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)){
             final String state = extras.getString(TelephonyManager.EXTRA_STATE);
             if ("IDLE".equals(state)){
-                MyLogSupport.log_print("전화끊음!");
-                autoCallViewModel.timer_Setting.setValue(false);
+                autoCallViewModel.calling_end(auto.getString("HpNum", ""));
+                autoCallViewModel.call_quit = false;
             }
 
             if ("OFFHOOK".equals(state)){
-                MyLogSupport.log_print("전화중!");
                 autoCallViewModel.timer_Setting.setValue(true);
 
             }

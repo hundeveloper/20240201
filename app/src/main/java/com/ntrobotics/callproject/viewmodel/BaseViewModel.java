@@ -120,7 +120,7 @@ public abstract class BaseViewModel<T> extends ViewModel  implements Callback<T>
                     requestCnt = 0;
                 }
             }
-        }, 100);
+        }, 150);
     }
 
     void requestDelayedFail(final int apiId, final String status) {

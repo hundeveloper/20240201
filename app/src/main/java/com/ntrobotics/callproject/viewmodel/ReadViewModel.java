@@ -9,13 +9,18 @@ import com.ntrobotics.callproject.model.AgentState;
 import com.ntrobotics.callproject.model.CallBook;
 import com.ntrobotics.callproject.model.USIMModel;
 import com.ntrobotics.callproject.support.MyLogSupport;
+import com.ntrobotics.callproject.support.MyToastSupport;
 
 import retrofit2.Response;
 
 public class ReadViewModel extends BaseViewModel {
 
+    private MyToastSupport toastSupport;
+    Context context;
     public ReadViewModel(Context context) {
         super(context);
+        this.context = context;
+        this.toastSupport = new MyToastSupport(context);
     }
 
     public final SingleLiveEvent<Boolean> loginsuccess = new SingleLiveEvent<>();
@@ -23,6 +28,7 @@ public class ReadViewModel extends BaseViewModel {
     public final SingleLiveEvent<Boolean> auto_progress = new SingleLiveEvent<>();
     public final SingleLiveEvent<CallBook> callbook = new SingleLiveEvent<>();
     public final SingleLiveEvent<Boolean> autocall_start_and_stop = new SingleLiveEvent<>();
+
 
     public void login(String companyId, String hp_number) { commit(MyConst.API_Login, companyId, hp_number);}
     public void number_check(String hp_number) { commit(MyConst.API_NUMBER_CHECK, null, hp_number); }
@@ -51,6 +57,9 @@ public class ReadViewModel extends BaseViewModel {
     public void onRFResponseFail(int apiId, String status) {
         if(apiId == MyConst.API_Login){
             server_online.setValue(true);
+        }else if(apiId == MyConst.API_CALLBOOK_TAKE){
+            toastSupport.showToast("전화번호를 전부 호출하였습니다.");
+
         }
     }
 

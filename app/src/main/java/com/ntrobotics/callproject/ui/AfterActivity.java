@@ -1,13 +1,19 @@
 package com.ntrobotics.callproject.ui;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.telecom.InCallService;
+import android.telecom.TelecomManager;
+import android.telephony.TelephonyManager;
 import android.view.View;
 
+import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.Observer;
 
 import com.ntrobotics.callproject.NtApplication;
@@ -30,7 +36,7 @@ public class AfterActivity extends BaseActivity {
     private SharedPreferences auto;
     private Intent it;
     private MyToastSupport toastSupport = new MyToastSupport(this);
-    private Timer timer;
+    private Timer timer, timer_calling;
     Handler handler;
     private boolean isHandlerActive = true;
     private final AutoCallViewModel autoCallViewModel = NtApplication.handlerViewModel.getAutoCallViewModel();
@@ -44,9 +50,9 @@ public class AfterActivity extends BaseActivity {
 
     }
 
-    private void startTimer() {
+    private void startTimer_callwating() {
         if (timer == null) {
-            MyLogSupport.log_print("타이머가 실행되었습니다");
+            MyLogSupport.log_print("StartTimer_callwating");
             timer = new Timer();
 
             timer.scheduleAtFixedRate(new TimerTask() {
@@ -54,31 +60,106 @@ public class AfterActivity extends BaseActivity {
                 public void run() {
                     readViewModel.number_check(auto.getString("HpNum", ""));
                 }
-            }, 0, 10000);
+            }, 0, 12000);
         }
     }
 
-    private void stopTimer() {
+    private void stopTimer_callwating() {
         if (timer != null) {
             timer.cancel();
             timer = null;
         }
     }
 
+    private void startTimer_calling() {
+        Context context = this.getApplicationContext();
+        if (this.timer_calling == null) {
+            MyLogSupport.log_print("startTimer_calling");
+            this.timer_calling = new Timer();
+            this.timer_calling.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    autoCallViewModel.calling_check(auto.getString("HpNum", ""));
+                    if (autoCallViewModel.call_quit == true) {
+                        MyLogSupport.log_print("통화종료 메소드 실행@@@@@@@@@@@@@@@@");
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                            hangUpCall(context);
+
+                        } else {
+                            endCall();
+                        }
+
+                    }
+                }
+            }, 0, 2000);
+        }
+    }
+
+    private void stopTimer_calling() {
+        autoCallViewModel.call_quit = false;
+        if (this.timer_calling != null) {
+            this.timer_calling.cancel();
+            this.timer_calling = null;
+        }
+    }
+
+    private void life_autocalling_observer() {
+        autoCallViewModel.timer_Setting.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    MyLogSupport.log_print("통화중 : 타이머 시작@@@@@@@@@@@@@@@@@@@@@");
+                    startTimer_calling();
+
+                } else {
+                    MyLogSupport.log_print("통화종료 : 타이머를 중단@@@@@@@@@@@@@@@");
+                    stopTimer_calling();
+                }
+            }
+        });
+    }
+
+    private void endCall() {
+        try {
+//             통화 종료 시도
+            TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            Class<?> c = Class.forName(tm.getClass().getName());
+            java.lang.reflect.Method m = c.getDeclaredMethod("getITelephony");
+            m.setAccessible(true);
+            Object telephonyService = m.invoke(tm);
+            c = Class.forName(telephonyService.getClass().getName());
+            m = c.getDeclaredMethod("endCall");
+            m.setAccessible(true);
+            m.invoke(telephonyService);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void Init() {
         binding.logoutButton.setOnClickListener(this);
-        binding.buttonAutoCall.setOnClickListener(this);
         auto = getSharedPreferences("autoLogin", MODE_PRIVATE);
         it = new Intent(this, MainActivity.class);
 
         // 현재 이 전화번호가 auto_call을 돌려도되는건지 체크?
-        toastSupport.showToast("5초 뒤에 자동오토콜 프로그램이 동작됩니다.");
+        toastSupport.showToast("곧 자동오토콜 프로그램이 동작됩니다..");
 
         handler = new Handler(Looper.getMainLooper());
-        startTimer();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (isHandlerActive) {
+//                readViewModel.number_check(auto.getString("HpNum", ""));
+                    startTimer_callwating();
+                } else {
+                    MyLogSupport.log_print("StartTimer실행 else");
+                }
+            }
+        }, 12000);
 
 
         try {
+
             readViewModel.auto_progress.observe(this, new Observer<Boolean>() {
                 @Override
                 public void onChanged(Boolean aBoolean) {
@@ -87,6 +168,7 @@ public class AfterActivity extends BaseActivity {
                         readViewModel.callbook_take(auto.getString("CompanyId", ""));// 전화번호부 가져오기
 
                     } else {
+                        toastSupport.showToast("(상담원) 통화가능 상태 확인 바랍니다.");
                         MyLogSupport.log_print("autocall : false 거절");
                     }
                 }
@@ -102,26 +184,35 @@ public class AfterActivity extends BaseActivity {
                 }
             });
 
-//            readViewModel.autocall_start_and_stop.observe(this, new Observer<Boolean>() {
-//                @Override
-//                public void onChanged(Boolean aBoolean) {
-//                    if (aBoolean) {
-//                        MyLogSupport.log_print("autocall_start_and_stop -> true");
-//                        readViewModel.number_check(auto.getString("HpNum", ""));
-//                    } else {
-//                        MyLogSupport.log_print("autocall_start_and_stop -> false");
-//                    }
-//                }
-//            });
-        }
-        catch(Exception e){
+
+        } catch (Exception e) {
             MyLogSupport.log_print(e.toString());
         }
+
+    }
+
+
+    public void hangUpCall(Context context) {
+        TelecomManager telecomManager = (TelecomManager) context.getSystemService(Context.TELECOM_SERVICE);
+        if (telecomManager != null) {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) {
+                    MyLogSupport.log_print("권한거부로 return~");
+                    return;
+                }
+                telecomManager.endCall();
+            }
+
+
+        }
+
     }
 
     public void Performdial(String phone_hp) {
         Intent intent = new Intent(Intent.ACTION_CALL);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        autoCallViewModel.call_status_start(auto.getString("HpNum", ""), phone_hp);
 
         intent.setData(Uri.parse("tel:" + phone_hp));
         try {
@@ -144,12 +235,17 @@ public class AfterActivity extends BaseActivity {
 
     @Override
     protected void pauseActivity() {
-        stopTimer();
+        autoCallViewModel.call_quit = false;
+        stopTimer_callwating();
+        startTimer_calling();
     }
 
     @Override
     protected void onRestartActivity() {
         MyLogSupport.log_print("@@@@@@@@ onrestartactivity @@@@@@@@@@@");
+        stopTimer_calling();
+        autoCallViewModel.call_quit = false;
+
         handler.postDelayed(new Runnable()
         {
             @Override
@@ -157,12 +253,12 @@ public class AfterActivity extends BaseActivity {
             {
                 if(isHandlerActive) {
 //                readViewModel.number_check(auto.getString("HpNum", ""));
-                    startTimer();
+                    startTimer_callwating();
                 }else{
                     MyLogSupport.log_print("StartTimer실행 else");
                 }
             }
-        }, 10000);
+        }, 12000);
 
 
     }
@@ -172,7 +268,8 @@ public class AfterActivity extends BaseActivity {
         binding = null;
         isHandlerActive = false;
         handler.removeCallbacksAndMessages(null);
-        stopTimer();
+        stopTimer_callwating();
+        stopTimer_calling();
 
     }
 
@@ -184,8 +281,6 @@ public class AfterActivity extends BaseActivity {
             autoLoginEdit.commit();
             startActivity(it);
             finish();
-        } else if( v.getId() == R.id.button_auto_call){
-
         }
     }
 }
