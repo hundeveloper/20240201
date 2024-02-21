@@ -3,6 +3,7 @@ package com.ntrobotics.callproject.retrofit;
 import android.annotation.SuppressLint;
 
 
+import com.ntrobotics.callproject.NtApplication;
 import com.ntrobotics.callproject.network.ServerAddress;
 
 import java.util.concurrent.TimeUnit;
@@ -19,9 +20,9 @@ public class BaseRetrofit {
     private static RetrofitAPI retrofitAPI = null;
 
     public static RetrofitAPI getRetrofitBuilder(){
-        if(retrofitAPI == null){
+        if(retrofitAPI == null && !NtApplication.serverip.isEmpty()){
             Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(ServerAddress.BASE_URL)
+                .baseUrl(NtApplication.serverip)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(getUnsafeOkHttpClient().build()).build();
 
@@ -31,11 +32,24 @@ public class BaseRetrofit {
         return retrofitAPI;
     }
 
+    public static RetrofitAPI getUpdateRetrofitBuilder(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(NtApplication.serverip)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(getUnsafeOkHttpClient().build()).build();
+
+        retrofitAPI = retrofit.create(RetrofitAPI.class);
+
+        return retrofitAPI;
+    }
+
+
+
     private static OkHttpClient.Builder getUnsafeOkHttpClient() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                .connectTimeout(3, TimeUnit.SECONDS)
-                .readTimeout(3, TimeUnit.SECONDS)
-                .writeTimeout(3, TimeUnit.SECONDS);
+                .connectTimeout(100, TimeUnit.SECONDS)
+                .readTimeout(100, TimeUnit.SECONDS)
+                .writeTimeout(100, TimeUnit.SECONDS);
         builder.hostnameVerifier(new HostnameVerifier() {
             @SuppressLint("BadHostnameVerifier")
             @Override

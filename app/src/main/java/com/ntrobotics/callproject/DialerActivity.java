@@ -144,19 +144,19 @@ public class DialerActivity extends BaseActivity {
         });
 
 
-        autoCallViewModel.timer_Setting.observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                if(aBoolean){
-                    MyLogSupport.log_print("통화가시작되었으니 타이머를 시작하죠");
-                    startTimer_calling();
-
-                }else{
-                    MyLogSupport.log_print("통화가종료 타이머를 중단!");
-                    stopTimer_calling();
-                }
-            }
-        });
+//        autoCallViewModel.timer_Setting.observe(this, new Observer<Boolean>() {
+//            @Override
+//            public void onChanged(Boolean aBoolean) {
+//                if(aBoolean){
+//                    MyLogSupport.log_print("통화가시작되었으니 타이머를 시작하죠");
+//                    startTimer_calling();
+//
+//                }else{
+//                    MyLogSupport.log_print("통화가종료 타이머를 중단!");
+//                    stopTimer_calling();
+//                }
+//            }
+//        });
 
 
         callBtn.setOnClickListener(v -> {

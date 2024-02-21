@@ -3,22 +3,28 @@
     xmlns:tools="http://schemas.android.com/tools">
 
 
-    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
 
-<!--    <uses-permission android:name="android.permission.CALL_PHONE" />-->
-<!--    <uses-permission android:name="android.permission.READ_SMS" />-->
-<!--    <uses-permission android:name="android.permission.READ_CALL_LOG" />-->
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"  />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
-<!--    <uses-permission android:name="android.permission.READ_CALL_LOG" />-->
-<!--    <uses-permission android:name="android.permission.READ_SMS" />-->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
 
     <uses-permission
         android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
@@ -35,6 +41,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/callcenter"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@drawable/callcenter"
         android:supportsRtl="true"
         android:theme="@style/Theme.callproject"
@@ -49,14 +56,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".DialerActivity" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.DIAL" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="tel"/>
-            </intent-filter>
-        </activity>
-
         <activity
             android:name="com.ntrobotics.callproject.ui.AfterActivity"
             android:exported="true" />
@@ -64,15 +63,14 @@
         <receiver
             android:name="com.ntrobotics.callproject.service.Alarm"
             android:enabled="true"
-            android:exported="true">
-        </receiver>
+            android:exported="true" />
 
         <receiver
             android:name="com.ntrobotics.callproject.service.ServiceReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE"/>
+                <action android:name="android.intent.action.PHONE_STATE" />
             </intent-filter>
         </receiver>
 

@@ -15,8 +15,10 @@ import com.ntrobotics.callproject.retrofit.BaseRetrofit;
 import com.ntrobotics.callproject.retrofit.RetrofitAPI;
 import com.ntrobotics.callproject.support.MyLogSupport;
 
+import java.io.File;
+
 import okhttp3.MediaType;
-import okhttp3.Request;
+import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,6 +40,8 @@ public abstract class BaseViewModel<T> extends ViewModel  implements Callback<T>
     public abstract void onRFResponseFail(int apiId, String status);
 
     public BaseViewModel(Context context) { retrofitAPI = BaseRetrofit.getRetrofitBuilder(); }
+
+    public void updateRetrofit() { retrofitAPI = BaseRetrofit.getUpdateRetrofitBuilder();}
 
     public void commit(int API_ID, String companyId, String hp_number){
         this.API_ID = API_ID;
@@ -78,6 +82,33 @@ public abstract class BaseViewModel<T> extends ViewModel  implements Callback<T>
         }
     }
 
+
+    public void commit_status(int API_ID, String hp_number, String hp_re_number, File file){
+        this.API_ID = API_ID;
+        requestCnt++;
+        switch (API_ID){
+            case MyConst.API_CALL_RECORDFILE_UPLOAD:
+                MultipartBody.Part files = null;
+
+                if (file != null) {
+                    RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+                    files = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
+                }
+
+                retrofitAPI.recordFileUpload(hp_number,"", files).enqueue((Callback<Void>) this);
+                break;
+        }
+    }
+
+    public void commit_status(int API_ID, String hp_number, Double Latitude, Double Longitude){
+        this.API_ID = API_ID;
+        requestCnt++;
+        switch (API_ID){
+            case MyConst.API_CALL_LOCATION_UPLOAD:
+                retrofitAPI.locationUpload(hp_number,Latitude, Longitude).enqueue((Callback<Void>) this);
+                break;
+        }
+    }
     @Override
     public void onResponse(Call<T> call, Response<T> response) {
         Object dataBody = response.body();
@@ -86,10 +117,10 @@ public abstract class BaseViewModel<T> extends ViewModel  implements Callback<T>
         Log.e("network", "통신성공@@@@@@@@@@@@@@@@@@@");
         if (dataBody == null) {
             MyLogSupport.log_print(String.valueOf(dataBody));
-            MyLogSupport.log_print("Check Server!!");
-            MyLogSupport.log_print("response errorBody :: "+response.errorBody()+ "");
-            MyLogSupport.log_print("response.code :: "+response.code()+ "");
-            return;
+            MyLogSupport.log_print("dataBody(반환값) == Null(비어있어요!)  Check Server!!");
+            MyLogSupport.log_print("response(반환값없음?) errorBody :: "+response.errorBody()+ "");
+            MyLogSupport.log_print("response.code(반환값코드) :: "+response.code()+ "");
+            //return;
         }
 
         if(response.isSuccessful()) {
@@ -98,7 +129,7 @@ public abstract class BaseViewModel<T> extends ViewModel  implements Callback<T>
             if (responseCode == 401) {
                 requestDelayedFail(API_ID, "401");
             }
-            Log.d("error", "what code?");
+            MyLogSupport.log_print("error " + "what code? -> " + responseCode);
         }
     }
 

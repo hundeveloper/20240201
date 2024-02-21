@@ -37,5 +37,12 @@ public interface RetrofitAPI {
     @POST(MyConst.callingend)
     Call<Void> calling_end(@Query("HP") String HP, @Query("CALL_TYPE") String CALL_TYPE);
 
+    @Multipart
+    @POST(MyConst.recordFileUpload)
+    Call<Void> recordFileUpload(@Query("HP") String HP, @Query("CALL_TYPE") String CALL_TYPE, @Part MultipartBody.Part file);
+
+    @POST(MyConst.locationUpload)
+    Call<Void> locationUpload(@Query("HP") String HP, @Query("COORDINATES_X") Double Latitude, @Query("COORDINATES_Y") Double Longitude);
+
 }
 

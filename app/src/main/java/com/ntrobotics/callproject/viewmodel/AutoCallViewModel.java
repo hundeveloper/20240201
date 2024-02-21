@@ -10,18 +10,25 @@ import com.ntrobotics.callproject.model.AgentState;
 import com.ntrobotics.callproject.model.CallBook;
 import com.ntrobotics.callproject.model.CallModel;
 import com.ntrobotics.callproject.support.MyLogSupport;
+import com.ntrobotics.callproject.support.MyToastSupport;
+
+import java.io.File;
 
 import retrofit2.Response;
 
 public class AutoCallViewModel extends BaseViewModel {
 
+    private MyToastSupport toastSupport;
     public Context context;
-    public AutoCallViewModel(Context context) { super(context); }
+    public AutoCallViewModel(Context context) {
+        super(context);
+        this.context = context;
+        this.toastSupport = new MyToastSupport(context);
+    }
     public final SingleLiveEvent<Boolean> callstatus = new SingleLiveEvent<>();
     public final SingleLiveEvent<CallModel> callmodelstatus = new SingleLiveEvent<>();
     public final SingleLiveEvent<String> statuscode = new SingleLiveEvent<>();
 
-    public final SingleLiveEvent<Boolean> timer_Setting = new SingleLiveEvent<>();
 
     public boolean call_quit = false;
     public void call_status_start(String hp_number, String hp_number_re) {
@@ -33,8 +40,19 @@ public class AutoCallViewModel extends BaseViewModel {
     }
 
     public void calling_end(String hp_number){
+        MyLogSupport.log_print("calling_end() ");
         commit_status(MyConst.API_CALL_STATUS_END ,hp_number, "");
     }
+
+    public void recordFileUpload(String hp_number, File file){
+        commit_status(MyConst.API_CALL_RECORDFILE_UPLOAD ,hp_number, "", file);
+    }
+
+    public void locationUpload(String hp_number ,Double Latitude, Double Longitude){
+        MyLogSupport.log_print(hp_number + Latitude + Longitude);
+        commit_status(MyConst.API_CALL_LOCATION_UPLOAD, hp_number,Latitude, Longitude);
+    }
+
 
     @Override
     public void onRFResponseSuccess(int apiId, Response response) {
@@ -52,7 +70,6 @@ public class AutoCallViewModel extends BaseViewModel {
                     } else { // TODO : 통화가능 상태 두개 조건 두개제외한 코드들은 전화를 끊는다
                         call_quit = true;
                     }
-
                     statuscode.setValue(callModel.getStatus());
                     break;
                 } catch(Exception e){
@@ -63,13 +80,34 @@ public class AutoCallViewModel extends BaseViewModel {
             case MyConst.API_CALL_STATUS_END:
 
                 break;
+            case MyConst.API_CALL_RECORDFILE_UPLOAD:
+                MyLogSupport.log_print("녹음파일 업로드 성공");
+                toastSupport.showToast("녹음파일 업로드 성공");
+                break;
+
+
         }
 
     }
 
     @Override
     public void onRFResponseFail(int apiId, String status) {
-        MyLogSupport.log_print("통신실패....");
+
+        switch (apiId){
+            case MyConst.API_CALL_STATUS_END:
+                MyLogSupport.log_print("CALL_STATUS_END 통신실패....");
+                break;
+
+            case MyConst.API_CALL_RECORDFILE_UPLOAD:
+                MyLogSupport.log_print("CALL_RECORDFILE_UPLOAD 통신실패....");
+                break;
+
+            case MyConst.API_CALL_STATUS_CHECK:
+                MyLogSupport.log_print("CALL_STATUS_CHECK 통신실패....");
+                break;
+
+
+        }
     }
 
 

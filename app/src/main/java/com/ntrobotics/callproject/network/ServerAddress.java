@@ -1,5 +1,10 @@
 package com.ntrobotics.callproject.network;
 
+import android.content.Context;
+
+import com.ntrobotics.callproject.NtApplication;
+
 public class ServerAddress {
-    public final static String BASE_URL = "http://192.168.1.78:8043/";
+    Context context;
+    public static String BASE_URL = "http://0.0.0.0/";
 }

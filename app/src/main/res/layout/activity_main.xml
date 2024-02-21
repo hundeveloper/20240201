@@ -8,6 +8,32 @@
     tools:context="com.ntrobotics.callproject.ui.MainActivity">
 
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="right"
+        android:layout_marginRight="10dp">
+
+
+        <Button
+            android:id="@+id/showPopupButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="서버 IP 변경"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="접속서버 IP " />
+        <TextView
+            android:id="@+id/tv_server_ip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="X"
+            android:textAlignment="textStart"/>
+
+    </LinearLayout>
 
 
     <LinearLayout
@@ -68,6 +94,7 @@
             android:layout_height="wrap_content"
             android:text="로그인"
             />
+
     </LinearLayout>
 
 

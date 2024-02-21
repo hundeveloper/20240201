@@ -9,8 +9,11 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import com.ntrobotics.callproject.support.MyLogSupport;
 import com.ntrobotics.callproject.ui.MainActivity;
 import com.ntrobotics.callproject.R;
+
+import java.util.Calendar;
 
 public class Alarm extends BroadcastReceiver {
 
@@ -47,7 +50,7 @@ public class Alarm extends BroadcastReceiver {
 
 
         if(intent.getStringExtra("app").equals("restart")){
-            Log.e("Alarm", "앱재시작감지");
+            MyLogSupport.log_print( "앱재시작감지");
             Intent i = new Intent(context, MainActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             context.startActivity(i);

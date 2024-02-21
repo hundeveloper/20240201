@@ -27,7 +27,7 @@ public class ReadViewModel extends BaseViewModel {
     public final SingleLiveEvent<Boolean> server_online = new SingleLiveEvent<>();
     public final SingleLiveEvent<Boolean> auto_progress = new SingleLiveEvent<>();
     public final SingleLiveEvent<CallBook> callbook = new SingleLiveEvent<>();
-    public final SingleLiveEvent<Boolean> autocall_start_and_stop = new SingleLiveEvent<>();
+    public boolean callbook_re_Successful = false;
 
 
     public void login(String companyId, String hp_number) { commit(MyConst.API_Login, companyId, hp_number);}
@@ -48,8 +48,12 @@ public class ReadViewModel extends BaseViewModel {
             auto_progress.setValue(agentState.getStatus());
 
         }else if(apiId == MyConst.API_CALLBOOK_TAKE) {
-            CallBook callBook = (CallBook) response.body();
-            callbook.setValue(callBook);
+            try {
+                CallBook callBook = (CallBook) response.body();
+                callbook.setValue(callBook);
+            }catch (Exception e) {
+                MyLogSupport.log_print(e.toString());
+            }
         }
     }
 
