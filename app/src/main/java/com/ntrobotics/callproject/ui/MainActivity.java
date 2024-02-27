@@ -36,6 +36,7 @@ import com.gun0912.tedpermission.normal.TedPermission;
 import com.ntrobotics.callproject.CallStateListener;
 import com.ntrobotics.callproject.NtApplication;
 import com.ntrobotics.callproject.R;
+import com.ntrobotics.callproject.YourPermissionClass;
 import com.ntrobotics.callproject.databinding.ActivityMainBinding;
 import com.ntrobotics.callproject.network.ServerAddress;
 import com.ntrobotics.callproject.service.Alarm;
@@ -64,15 +65,13 @@ public class MainActivity extends BaseActivity {
     private TimePicker timePicker;
     private Long mLastClickTime = 0L;
     private AlertDialog alertDialog;
-    SharedPreferences.Editor autoLoginEdit;
+    private SharedPreferences.Editor autoLoginEdit;
 
 
     @Override
     protected void createActivity() {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        binding.companyId.setText("SAMSUNG");
 
         permission_check();
         Go_Settings();
@@ -106,7 +105,7 @@ public class MainActivity extends BaseActivity {
             if (!Environment.isExternalStorageManager()) {
                 Toast.makeText(this, "(autocall)모든 파일에 대한 접근을 허용해주세요..", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }
         }
@@ -134,7 +133,6 @@ public class MainActivity extends BaseActivity {
                     @SuppressLint("MissingPermission")
                     @Override
                     public void onChanged(Boolean aBoolean) {
-                        MyLogSupport.log_print("loginsuccess : observer");
                         if (aBoolean) {
                             autoLoginEdit.putString("CompanyId", binding.companyId.getText().toString());
                             autoLoginEdit.putString("HpNum", telephonyManager.getLine1Number());
@@ -202,6 +200,7 @@ public class MainActivity extends BaseActivity {
                 MyLogSupport.log_print("로그인버튼클릭!");
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED
                         && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                    permission_check();
                     return;
                 }
                 if (telephonyManager.getLine1Number() == null) {
@@ -211,7 +210,6 @@ public class MainActivity extends BaseActivity {
                     myToastSupport.showToast("서버 IP주소를 입력해주세요.");
                     return;
                 }
-
 
                 readViewModel.login(binding.companyId.getText().toString(), telephonyManager.getLine1Number());
                 myToastSupport.showToast("로그인중입니다.");
@@ -234,15 +232,12 @@ public class MainActivity extends BaseActivity {
 
 
     private void showPopup() {
-        // 레이아웃 인플레이터를 사용하여 사용자 정의 다이얼로그 레이아웃을 가져옵니다.
         LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
         View promptView = layoutInflater.inflate(R.layout.input_dialog, null);
 
-        // AlertDialog.Builder를 사용하여 다이얼로그를 생성합니다.
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
         alertDialogBuilder.setView(promptView);
 
-        // 다이얼로그에서 사용할 뷰 요소들을 가져옵니다.
         final EditText userInput = promptView.findViewById(R.id.editTextDialogUserInput);
         Button confirmButton = promptView.findViewById(R.id.confirmButton);
         Button cancelButton = promptView.findViewById(R.id.cancelButton);
@@ -250,24 +245,20 @@ public class MainActivity extends BaseActivity {
 
         userInput.setText(auto.getString("serverip", ""));
 
-
-        // 확인 버튼을 눌렀을 때의 동작을 정의합니다.
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // userInput에서 텍스트를 가져와서 사용하십시오.
                 String inputText = userInput.getText().toString();
 
-                // 확인 버튼을 눌렀을 때 실행될 메소드를 호출합니다.
+                // 확인 버튼을 눌렀을 때 실행될 메소드를 호출
                 onConfirmButtonClicked(inputText);
             }
         });
 
-        // 취소 버튼을 눌렀을 때의 동작을 정의합니다.
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 취소 버튼을 눌렀을 때 실행될 메소드를 호출합니다.
+                // 취소 버튼을 눌렀을 때 실행될 메소드를 호출
                 onCancelButtonClicked();
             }
         });
@@ -361,7 +352,7 @@ public class MainActivity extends BaseActivity {
 
     private void record_file_delete() {
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_MONTH, -1); //2024-02-06 11:26
+        calendar.add(Calendar.DAY_OF_MONTH, -7); //2024-02-06 11:26
         Date date = calendar.getTime();
 
         int year = calendar.get(Calendar.YEAR);
@@ -410,40 +401,8 @@ public class MainActivity extends BaseActivity {
 
 
     private void permission_check() {
-        String[] PERMISSIONS;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            PERMISSIONS = new String[]{
-                    Manifest.permission.CALL_PHONE,
-                    Manifest.permission.READ_PHONE_NUMBERS,
-                    Manifest.permission.SYSTEM_ALERT_WINDOW,
-                    Manifest.permission.ANSWER_PHONE_CALLS,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_MEDIA_AUDIO,
-                    Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
-
-
-            };
-        } else {
-            PERMISSIONS = new String[]{
-                    Manifest.permission.CALL_PHONE,
-                    Manifest.permission.READ_PHONE_STATE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_MEDIA_AUDIO,
-                    Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
-
-            };
-        }
-
+        String[] PERMISSIONS = YourPermissionClass.requiredPermissionList;
         PermissionListener permissionListener = new PermissionListener();
-
 
         ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS, 0);
 
@@ -459,9 +418,7 @@ public class MainActivity extends BaseActivity {
                     .setPermissions(Manifest.permission.READ_MEDIA_AUDIO)
                     .setPermissions(Manifest.permission.ACCESS_FINE_LOCATION)
                     .check();
-//            Manifest.permission.ACCESS_FINE_LOCATION,
-//                    Manifest.permission.ACCESS_COARSE_LOCATION,
-//                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+
         } else { // TODO : API 30 이하
             MyLogSupport.e_log_print("API30이하");
             TedPermission.create()

@@ -38,7 +38,6 @@ public class ServiceReceiver extends BroadcastReceiver {
             if (intent.getAction().equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
                 final String state = extras.getString(TelephonyManager.EXTRA_STATE);
                 if ("IDLE".equals(state)) {
-//                    autoCallViewModel.calling_end(auto.getString("HpNum", ""));
                     autoCallViewModel.call_quit = false;
                     try {
                         new Handler().postDelayed(new Runnable() {
